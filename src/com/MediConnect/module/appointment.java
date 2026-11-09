@@ -1,3 +1,4 @@
+
 package com.MediConnect.module;
 
 public class appointment {
@@ -7,7 +8,8 @@ public class appointment {
     private String time;
     private String status;
 
-    public appointment(doctor doctor, patient patient, String date, String time, String status) {
+    public appointment(doctor doctor, patient patient,
+                       String date, String time, String status) {
         this.doctor = doctor;
         this.patient = patient;
         this.date = date;
@@ -41,9 +43,10 @@ public class appointment {
 
     @Override
     public String toString() {
-        return "Appointment: " + date + " at " + time +
-               " | Doctor: " + doctor.getName() +
-               " | Patient: " + patient.getName() +
-               " | Status: " + status;
+        return "Patient: " + patient.getName()
+                + " | Doctor: " + doctor.getName()
+                + " | Date: " + date
+                + " | Time: " + time
+                + " | Status: " + status;
     }
 }
