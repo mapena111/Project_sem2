@@ -1,25 +1,192 @@
 
-/* Main dashboard background */
+/* =====================================================
+   MEDICONNECT - MAIN APPLICATION THEME
+   ===================================================== */
 
 .root {
     -fx-font-family: "Segoe UI";
-    -fx-background-color: #F4F7FB;
+    -fx-background-color: #F3F6FA;
 }
 
-/* Page headings */
+/* =====================================================
+   APPLICATION BACKGROUND
+   ===================================================== */
 
-.page-title {
-    -fx-font-size: 26px;
+.app-background {
+    -fx-background-color: #F3F6FA;
+}
+
+.content-area {
+    -fx-background-color: #F3F6FA;
+}
+
+/* =====================================================
+   TOP HEADER
+   ===================================================== */
+
+.top-header {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: transparent transparent #E5EAF0 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(
+        gaussian, rgba(15, 23, 42, 0.05), 8, 0, 0, 2
+    );
+}
+
+.brand-title {
+    -fx-font-size: 25px;
     -fx-font-weight: bold;
-    -fx-text-fill: #123B67;
+    -fx-text-fill: #087BA8;
 }
 
-.page-subtitle {
+.brand-subtitle {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #94A3B8;
+    -fx-letter-spacing: 1px;
+}
+
+.staff-name {
     -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #173B57;
+}
+
+.staff-role {
+    -fx-font-size: 11px;
     -fx-text-fill: #64748B;
 }
 
-/* Cards */
+/* =====================================================
+   LEFT SIDEBAR
+   ===================================================== */
+
+.sidebar {
+    -fx-background-color: #173B57;
+}
+
+..menu-heading {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-padding: 0 0 15px 8px;
+    -fx-letter-spacing: 1.2px;
+}
+/* Navigation buttons */
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #E2EDF5;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 11px 14px;
+    -fx-background-radius: 7px;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #28536F;
+    -fx-text-fill: #FFFFFF;
+}
+
+.nav-button-active {
+    -fx-background-color: #087BA8;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+}
+
+.nav-button-active:hover {
+    -fx-background-color: #096F96;
+}
+
+/* Logout */
+
+.logout-button {
+    -fx-background-color: #D99532;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 7px;
+    -fx-cursor: hand;
+}
+
+.logout-button:hover {
+    -fx-background-color: #BD7D20;
+}
+
+/* Exit */
+
+.exit-button {
+    -fx-background-color: #C94C4C;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 7px;
+    -fx-cursor: hand;
+}
+
+.exit-button:hover {
+    -fx-background-color: #A93636;
+}
+
+/* =====================================================
+   PAGE HEADINGS AND TEXT
+   ===================================================== */
+
+.page-title {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #173B57;
+}
+
+.welcome-heading {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #334155;
+}
+
+.page-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748B;
+}
+
+/* =====================================================
+   DASHBOARD STATISTICS CARDS
+   ===================================================== */
+
+.stat-card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: #E2E8F0;
+    -fx-effect: dropshadow(
+        gaussian, rgba(15, 23, 42, 0.05), 10, 0, 0, 3
+    );
+}
+
+.stat-card:hover {
+    -fx-border-color: #7CC6E5;
+    -fx-effect: dropshadow(
+        gaussian, rgba(8, 123, 168, 0.12), 13, 0, 0, 4
+    );
+}
+
+.stat-title {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748B;
+    -fx-font-weight: bold;
+}
+
+.stat-value {
+    -fx-font-size: 29px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #087BA8;
+}
+
+/* =====================================================
+   GENERAL CARDS
+   ===================================================== */
 
 .card {
     -fx-background-color: white;
@@ -28,147 +195,170 @@
     -fx-border-color: #E2E8F0;
     -fx-padding: 20px;
     -fx-effect: dropshadow(
-        gaussian, rgba(0,0,0,0.05), 10, 0, 0, 3
+        gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 3
     );
 }
 
 .card-heading {
-    -fx-font-size: 18px;
+    -fx-font-size: 17px;
     -fx-font-weight: bold;
-    -fx-text-fill: #123B67;
+    -fx-text-fill: #173B57;
 }
 
-/* Text fields */
+/* =====================================================
+   TEXT FIELDS
+   ===================================================== */
 
 .text-field {
-    -fx-background-color: #F8FAFC;
+    -fx-background-color: #FFFFFF;
     -fx-border-color: #CBD5E1;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-padding: 10px;
+    -fx-padding: 9px;
+    -fx-font-size: 13px;
 }
 
 .text-field:focused {
     -fx-border-color: #0284C7;
+    -fx-border-width: 1.5px;
 }
 
-/* ComboBoxes */
+/* =====================================================
+   COMBO BOXES
+   ===================================================== */
 
 .combo-box {
-    -fx-background-color: #F8FAFC;
+    -fx-background-color: #FFFFFF;
     -fx-border-color: #CBD5E1;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
 }
 
-.combo-box .list-cell {
-    -fx-padding: 8px;
+.combo-box:focused {
+    -fx-border-color: #0284C7;
 }
 
-/* Date picker */
+.combo-box .list-cell {
+    -fx-padding: 8px;
+    -fx-font-size: 13px;
+}
+
+/* =====================================================
+   DATE PICKERS
+   ===================================================== */
 
 .date-picker {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 6px;
     -fx-background-radius: 6px;
 }
 
-/* Buttons */
+.date-picker:focused {
+    -fx-border-color: #0284C7;
+}
+
+/* =====================================================
+   GENERAL BUTTONS
+   ===================================================== */
+
+.button {
+    -fx-cursor: hand;
+}
 
 .primary-button {
     -fx-background-color: #087BA8;
     -fx-text-fill: white;
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-padding: 12px 18px;
-    -fx-background-radius: 8px;
-    -fx-cursor: hand;
+    -fx-padding: 10px 16px;
+    -fx-background-radius: 7px;
 }
 
 .primary-button:hover {
     -fx-background-color: #05658D;
 }
 
-/* Appointment table */
+/* =====================================================
+   TABLE VIEWS
+   ===================================================== */
 
 .table-view {
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
     -fx-border-color: #E2E8F0;
     -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-table-cell-border-color: #F1F5F9;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #EAF2F8;
 }
 
 .table-view .column-header {
     -fx-background-color: #EAF2F8;
+    -fx-size: 38px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #173B57;
     -fx-font-weight: bold;
-    -fx-text-fill: #123B67;
+    -fx-font-size: 12px;
 }
 
 .table-view .table-cell {
     -fx-padding: 10px;
+    -fx-font-size: 12px;
+    -fx-text-fill: #334155;
+}
+
+.table-row-cell {
+    -fx-background-color: #FFFFFF;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #F8FAFC;
 }
 
 .table-row-cell:selected {
     -fx-background-color: #D9F0FA;
 }
 
+.table-row-cell:selected .text {
+    -fx-fill: #173B57;
+}
 
-/* DOCTOR PROFILE CARDS */
+/* =====================================================
+   LABELS
+   ===================================================== */
 
-.doctor-card {
-    -fx-background-color: white;
-    -fx-background-radius: 16px;
-    -fx-border-radius: 16px;
+.label {
+    -fx-text-fill: #334155;
+}
+
+/* =====================================================
+   SCROLL BARS
+   ===================================================== */
+
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #CBD5E1;
+    -fx-background-radius: 8px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94A3B8;
+}
+
+/* =====================================================
+   SEPARATORS
+   ===================================================== */
+
+.separator .line {
     -fx-border-color: #E2E8F0;
-    -fx-padding: 25px;
-    -fx-alignment: center;
-    -fx-effect: dropshadow(
-        gaussian, rgba(0,0,0,0.06), 12, 0, 0, 4
-    );
+    -fx-border-width: 0.5px;
 }
-
-.doctor-card:hover {
-    -fx-border-color: #38BDF8;
-    -fx-effect: dropshadow(
-        gaussian, rgba(8,123,168,0.15), 16, 0, 0, 5
-    );
-}
-
-/* DOCTOR AVATAR */
-
-.doctor-avatar {
-    -fx-background-color: #DFF3FC;
-    -fx-background-radius: 50%;
-    -fx-min-width: 65px;
-    -fx-min-height: 65px;
-    -fx-max-width: 65px;
-    -fx-max-height: 65px;
-    -fx-alignment: center;
-    -fx-font-size: 25px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #087BA8;
-}
-
-/* DOCTOR NAME */
-
-.doctor-name {
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #123B67;
-}
-
-/* SPECIALTY */
-
-.specialty-badge {
-    -fx-background-color: #E0F2FE;
-    -fx-text-fill: #0369A1;
-    -fx-padding: 6px 12px;
-    -fx-background-radius: 20px;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-}
-
-/* AVAILABILITY */
-
-.doctor-availability {
-    -fx-font-size: 12px;
-    -fx-text-fill: #64748B;
-}
-
