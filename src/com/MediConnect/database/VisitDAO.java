@@ -12,44 +12,130 @@ import java.util.List;
 
 public class VisitDAO {
 
-    // Register a new patient visit
-    public int registerVisit(int patientID, int doctorID,
-            Integer appointmentID, String notes) throws SQLException {
 
-        String sql = "INSERT INTO Visits "
-                + "(PatientID, DoctorID, AppointmentID, Notes) "
-                + "VALUES (?, ?, ?, ?)";
+	// Register a new patient visit with database validation
+	public int registerVisit(int patientID, int doctorID,
+	        Integer appointmentID, String notes) throws SQLException {
 
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     sql, Statement.RETURN_GENERATED_KEYS)) {
+	    String patientDoctorSQL =
+	            "SELECT COUNT(*) FROM Patients p "
+	            + "CROSS JOIN Doctors d "
+	            + "WHERE p.PatientID = ? AND p.IsArchived = 0 "
+	            + "AND d.DoctorID = ? AND d.IsArchived = 0";
 
-            statement.setInt(1, patientID);
-            statement.setInt(2, doctorID);
+	    String appointmentSQL =
+	            "SELECT PatientID, DoctorID, Status "
+	            + "FROM Appointments WITH (UPDLOCK, HOLDLOCK) "
+	            + "WHERE AppointmentID = ?";
 
-            if (appointmentID == null) {
-                statement.setNull(3, java.sql.Types.INTEGER);
-            } else {
-                statement.setInt(3, appointmentID);
-            }
+	    String insertSQL =
+	            "INSERT INTO Visits "
+	            + "(PatientID, DoctorID, AppointmentID, VisitDate, Notes) "
+	            + "VALUES (?, ?, ?, GETDATE(), ?)";
 
-            statement.setString(4, notes);
+	    try (Connection connection = DatabaseConnection.getConnection()) {
 
-            int affectedRows = statement.executeUpdate();
+	        connection.setAutoCommit(false);
 
-            if (affectedRows == 0) {
-                return -1;
-            }
+	        try {
+	            // 1. Verify that the patient and doctor exist and are active
+	            try (PreparedStatement statement =
+	                    connection.prepareStatement(patientDoctorSQL)) {
 
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
-        }
+	                statement.setInt(1, patientID);
+	                statement.setInt(2, doctorID);
 
-        return -1;
-    }
+	                try (ResultSet result = statement.executeQuery()) {
+	                    if (!result.next() || result.getInt(1) != 1) {
+	                        throw new SQLException(
+	                                "The selected patient or doctor does not exist "
+	                                + "or is archived.");
+	                    }
+	                }
+	            }
+
+	            // 2. If an appointment was selected, validate its details
+	            if (appointmentID != null) {
+
+	                try (PreparedStatement statement =
+	                        connection.prepareStatement(appointmentSQL)) {
+
+	                    statement.setInt(1, appointmentID);
+
+	                    try (ResultSet result = statement.executeQuery()) {
+
+	                        if (!result.next()) {
+	                            throw new SQLException(
+	                                    "The selected appointment does not exist.");
+	                        }
+
+	                        int appointmentPatientID =
+	                                result.getInt("PatientID");
+
+	                        int appointmentDoctorID =
+	                                result.getInt("DoctorID");
+
+	                        String status = result.getString("Status");
+
+	                        if (appointmentPatientID != patientID
+	                                || appointmentDoctorID != doctorID) {
+
+	                            throw new SQLException(
+	                                    "The selected appointment does not belong "
+	                                    + "to the selected patient and doctor.");
+	                        }
+
+	                        if (!"Completed".equalsIgnoreCase(status)) {
+	                            throw new SQLException(
+	                                    "Only completed appointments can be "
+	                                    + "registered as patient visits.");
+	                        }
+	                    }
+	                }
+	            }
+
+	            // 3. Insert the visit and automatically record its date
+	            try (PreparedStatement statement =
+	                    connection.prepareStatement(
+	                            insertSQL, Statement.RETURN_GENERATED_KEYS)) {
+
+	                statement.setInt(1, patientID);
+	                statement.setInt(2, doctorID);
+
+	                if (appointmentID == null) {
+	                    statement.setNull(3, java.sql.Types.INTEGER);
+	                } else {
+	                    statement.setInt(3, appointmentID);
+	                }
+
+	                statement.setString(4, notes);
+
+	                int affectedRows = statement.executeUpdate();
+
+	                if (affectedRows == 0) {
+	                    throw new SQLException(
+	                            "The visit could not be registered.");
+	                }
+
+	                try (ResultSet keys = statement.getGeneratedKeys()) {
+	                    if (keys.next()) {
+	                        int visitID = keys.getInt(1);
+	                        connection.commit();
+	                        return visitID;
+	                    }
+	                }
+	            }
+
+	            throw new SQLException(
+	                    "Visit registration failed. No generated ID was returned.");
+
+	        } catch (SQLException e) {
+	            connection.rollback();
+	            throw e;
+	        }
+	    }
+	}
+
 
     // Retrieve all patient visits
     public List<VisitRecord> getAllVisits() throws SQLException {
@@ -70,28 +156,31 @@ public class VisitDAO {
         return visits;
     }
 
-    // Search visits using visit, patient or doctor ID
+    // Search visits using visit ID, patient name/ID, doctor name/ID or notes
     public List<VisitRecord> searchVisits(String keyword)
             throws SQLException {
 
         List<VisitRecord> visits = new ArrayList<>();
 
-        String sql = "SELECT * FROM Visits WHERE "
-                + "CAST(VisitID AS VARCHAR(20)) LIKE ? OR "
-                + "CAST(PatientID AS VARCHAR(20)) LIKE ? OR "
-                + "CAST(DoctorID AS VARCHAR(20)) LIKE ? OR "
-                + "Notes LIKE ? "
-                + "ORDER BY VisitDate DESC";
+        String sql = "SELECT v.* FROM Visits v "
+                + "LEFT JOIN Patients p ON v.PatientID = p.PatientID "
+                + "LEFT JOIN Doctors d ON v.DoctorID = d.DoctorID "
+                + "WHERE CAST(v.VisitID AS VARCHAR(20)) LIKE ? "
+                + "OR CAST(v.PatientID AS VARCHAR(20)) LIKE ? "
+                + "OR p.FullName LIKE ? "
+                + "OR CAST(v.DoctorID AS VARCHAR(20)) LIKE ? "
+                + "OR d.FullName LIKE ? "
+                + "OR v.Notes LIKE ? "
+                + "ORDER BY v.VisitDate DESC";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             String searchValue = "%" + keyword.trim() + "%";
 
-            statement.setString(1, searchValue);
-            statement.setString(2, searchValue);
-            statement.setString(3, searchValue);
-            statement.setString(4, searchValue);
+            for (int i = 1; i <= 6; i++) {
+                statement.setString(i, searchValue);
+            }
 
             try (ResultSet result = statement.executeQuery()) {
                 while (result.next()) {
@@ -102,7 +191,6 @@ public class VisitDAO {
 
         return visits;
     }
-
     // Update consultation notes
     public boolean updateVisitNotes(int visitID, String notes)
             throws SQLException {

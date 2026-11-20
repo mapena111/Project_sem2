@@ -2,8 +2,10 @@
 package com.MediConnect;
 
 import com.MediConnect.database.Staff;
+import com.MediConnect.database.StaffDAO;
 import com.MediConnect.database.DashboardDAO;
 
+import java.time.LocalDate;
 import java.sql.SQLException;
 
 import javafx.geometry.Insets;
@@ -12,7 +14,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
@@ -33,6 +39,7 @@ public class StaffDashboard {
     private Button activeModuleButton;
 
     private DashboardDAO dashboardDAO = new DashboardDAO();
+    private StaffDAO staffDAO = new StaffDAO();
 
     public StaffDashboard(Stage stage, Staff staff) {
         this.stage = stage;
@@ -70,7 +77,9 @@ public class StaffDashboard {
         Label staffName = new Label(staff.getFullName());
         staffName.getStyleClass().add("staff-name");
 
-        Label staffRole = new Label("Staff Account  |  " + staff.getRole());
+        Label staffRole = new Label(
+                "Staff Account  |  " + staff.getRole()
+        );
         staffRole.getStyleClass().add("staff-role");
 
         staffInformation.getChildren().addAll(
@@ -93,15 +102,18 @@ public class StaffDashboard {
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(210);
         sidebar.getStyleClass().add("sidebar");
+
         Label menuTitle = new Label("MAIN MENU");
 
         menuTitle.setTextFill(Color.WHITE);
-        menuTitle.setFont(Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 13));
+        menuTitle.setFont(
+                Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 13)
+        );
 
         menuTitle.setStyle(
-            "-fx-text-fill: white;"
-            + "-fx-font-weight: bold;"
-            + "-fx-font-size: 13px;"
+                "-fx-text-fill: white;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 13px;"
         );
 
         menuTitle.setPadding(new Insets(0, 0, 15, 8));
@@ -121,29 +133,16 @@ public class StaffDashboard {
                 "Reports"
         };
 
+        // Normal hospital modules
         for (String module : modules) {
 
-            Button moduleButton = new Button(module);
+            addNavigationButton(sidebar, module);
+        }
 
-            moduleButton.setMaxWidth(Double.MAX_VALUE);
-            moduleButton.setPrefHeight(43);
-            moduleButton.setAlignment(Pos.CENTER_LEFT);
+        // Staff Management is only visible to administrators.
+        if ("Administrator".equalsIgnoreCase(staff.getRole())) {
 
-            moduleButton.getStyleClass().add("nav-button");
-
-            moduleButton.setOnAction(event -> {
-
-                setActiveNavigation(moduleButton);
-
-                showModule(module);
-            });
-
-            sidebar.getChildren().add(moduleButton);
-
-            if (module.equals("Dashboard")) {
-                activeModuleButton = moduleButton;
-                moduleButton.getStyleClass().add("nav-button-active");
-            }
+            addNavigationButton(sidebar, "Staff Management");
         }
 
         // ================= SIDEBAR SPACER =================
@@ -153,6 +152,16 @@ public class StaffDashboard {
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
         sidebar.getChildren().add(spacer);
+
+        // ================= CHANGE PASSWORD =================
+
+        Button passwordButton = new Button("CHANGE MY PASSWORD");
+
+        passwordButton.setMaxWidth(Double.MAX_VALUE);
+        passwordButton.setPrefHeight(43);
+        passwordButton.getStyleClass().add("nav-button");
+
+        passwordButton.setOnAction(event -> changeMyPassword());
 
         // ================= LOGOUT BUTTON =================
 
@@ -175,6 +184,7 @@ public class StaffDashboard {
         exitButton.setOnAction(event -> exitApplication());
 
         sidebar.getChildren().addAll(
+                passwordButton,
                 logoutButton,
                 exitButton
         );
@@ -195,7 +205,6 @@ public class StaffDashboard {
 
         Scene scene = new Scene(mainLayout, 1200, 750);
 
-        // Load the application stylesheet when available.
         java.net.URL stylesheet =
                 getClass().getResource("style.css");
 
@@ -215,9 +224,39 @@ public class StaffDashboard {
 
         stage.setScene(scene);
 
-        // Open maximized, while preserving normal window controls.
         stage.setMaximized(true);
         stage.show();
+    }
+
+    // ================= ADD NAVIGATION BUTTON =================
+
+    private void addNavigationButton(VBox sidebar, String module) {
+
+        Button moduleButton = new Button(module);
+
+        moduleButton.setMaxWidth(Double.MAX_VALUE);
+        moduleButton.setPrefHeight(43);
+        moduleButton.setAlignment(Pos.CENTER_LEFT);
+
+        moduleButton.getStyleClass().add("nav-button");
+
+        moduleButton.setOnAction(event -> {
+
+            setActiveNavigation(moduleButton);
+
+            showModule(module);
+        });
+
+        sidebar.getChildren().add(moduleButton);
+
+        if (module.equals("Dashboard")) {
+
+            activeModuleButton = moduleButton;
+
+            moduleButton.getStyleClass().add(
+                    "nav-button-active"
+            );
+        }
     }
 
     // ================= ACTIVE NAVIGATION =================
@@ -225,6 +264,7 @@ public class StaffDashboard {
     private void setActiveNavigation(Button selectedButton) {
 
         if (activeModuleButton != null) {
+
             activeModuleButton.getStyleClass().remove(
                     "nav-button-active"
             );
@@ -268,6 +308,7 @@ public class StaffDashboard {
             information.getStyleClass().add("page-subtitle");
 
             VBox welcomeSection = new VBox(8);
+
             welcomeSection.getChildren().addAll(
                     description,
                     information
@@ -299,18 +340,19 @@ public class StaffDashboard {
 
             } catch (SQLException e) {
 
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-
-                alert.setTitle("Database Error");
-                alert.setHeaderText(
-                        "Unable to load dashboard statistics"
+                showAlert(
+                        Alert.AlertType.ERROR,
+                        "Database Error",
+                        "Unable to load dashboard statistics.",
+                        e.getMessage()
                 );
-                alert.setContentText(e.getMessage());
-
-                alert.showAndWait();
 
                 e.printStackTrace();
             }
+
+            contentArea.getChildren().add(
+                    createVisitDateSearchSection()
+            );
 
         } else if (module.equals("Patients")) {
 
@@ -318,10 +360,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(patientsView);
 
-            VBox.setVgrow(
-                    patientsView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(patientsView, Priority.ALWAYS);
 
         } else if (module.equals("Doctors")) {
 
@@ -329,10 +368,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(doctorsView);
 
-            VBox.setVgrow(
-                    doctorsView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(doctorsView, Priority.ALWAYS);
 
         } else if (module.equals("Appointments")) {
 
@@ -341,10 +377,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(appointmentsView);
 
-            VBox.setVgrow(
-                    appointmentsView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(appointmentsView, Priority.ALWAYS);
 
         } else if (module.equals("Visits")) {
 
@@ -352,10 +385,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(visitsView);
 
-            VBox.setVgrow(
-                    visitsView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(visitsView, Priority.ALWAYS);
 
         } else if (module.equals("Diagnoses")) {
 
@@ -364,10 +394,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(diagnosesView);
 
-            VBox.setVgrow(
-                    diagnosesView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(diagnosesView, Priority.ALWAYS);
 
         } else if (module.equals("Treatments")) {
 
@@ -376,10 +403,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(treatmentsView);
 
-            VBox.setVgrow(
-                    treatmentsView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(treatmentsView, Priority.ALWAYS);
 
         } else if (module.equals("Billing")) {
 
@@ -387,10 +411,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(billingView);
 
-            VBox.setVgrow(
-                    billingView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(billingView, Priority.ALWAYS);
 
         } else if (module.equals("Patient History")) {
 
@@ -402,10 +423,7 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(historyScreen);
 
-            VBox.setVgrow(
-                    historyScreen,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(historyScreen, Priority.ALWAYS);
 
         } else if (module.equals("Reports")) {
 
@@ -413,10 +431,29 @@ public class StaffDashboard {
 
             contentArea.getChildren().add(reportsView);
 
-            VBox.setVgrow(
-                    reportsView,
-                    Priority.ALWAYS
-            );
+            VBox.setVgrow(reportsView, Priority.ALWAYS);
+
+        } else if (module.equals("Staff Management")) {
+
+            // Extra security check before opening staff management.
+            if (!"Administrator".equalsIgnoreCase(staff.getRole())) {
+
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Access Denied",
+                        "Administrator access required.",
+                        "You are not authorized to manage staff accounts."
+                );
+
+                return;
+            }
+
+            StaffView staffView =
+                    new StaffView(staff.getStaffID());
+
+            contentArea.getChildren().add(staffView);
+
+            VBox.setVgrow(staffView, Priority.ALWAYS);
 
         } else {
 
@@ -461,6 +498,281 @@ public class StaffDashboard {
         return card;
     }
 
+    // ================= PATIENT VISITS BY DATE =================
+
+    private VBox createVisitDateSearchSection() {
+
+        VBox section = new VBox(12);
+
+        section.setPadding(new Insets(20));
+        section.setMaxWidth(Double.MAX_VALUE);
+        section.getStyleClass().add("card");
+
+        Label sectionHeading =
+                new Label("PATIENT VISITS BY DATE");
+
+        sectionHeading.getStyleClass().add("card-heading");
+
+        Label description = new Label(
+                "Select a date to find the number of patients who visited the hospital."
+        );
+
+        description.setWrapText(true);
+
+        DatePicker datePicker = new DatePicker(LocalDate.now());
+        datePicker.setPromptText("Select visit date");
+
+        Button searchButton = new Button("SEARCH");
+        searchButton.getStyleClass().add("primary-button");
+        searchButton.setPrefHeight(38);
+
+        Label resultLabel = new Label(
+                "Select a date and click Search."
+        );
+
+        resultLabel.setWrapText(true);
+
+        resultLabel.setStyle(
+                "-fx-font-size: 14px;"
+                + "-fx-font-weight: bold;"
+        );
+
+        HBox searchControls = new HBox(12);
+
+        searchControls.setAlignment(Pos.CENTER_LEFT);
+
+        searchControls.getChildren().addAll(
+                datePicker,
+                searchButton
+        );
+
+        searchButton.setOnAction(event -> {
+
+            LocalDate selectedDate = datePicker.getValue();
+
+            if (selectedDate == null) {
+
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Date Required",
+                        "Please select a date.",
+                        "Choose the date you want to search before continuing."
+                );
+
+                return;
+            }
+
+            try {
+
+                int patientCount =
+                        dashboardDAO.getPatientsVisitedOnDate(selectedDate);
+
+                if (patientCount == 1) {
+
+                    resultLabel.setText(
+                            "Result: 1 patient visited on "
+                            + selectedDate + "."
+                    );
+
+                } else {
+
+                    resultLabel.setText(
+                            "Result: " + patientCount
+                            + " patients visited on "
+                            + selectedDate + "."
+                    );
+                }
+
+            } catch (SQLException e) {
+
+                showAlert(
+                        Alert.AlertType.ERROR,
+                        "Database Error",
+                        "Unable to retrieve patient visit information.",
+                        e.getMessage()
+                );
+
+                e.printStackTrace();
+            }
+        });
+
+        section.getChildren().addAll(
+                sectionHeading,
+                description,
+                searchControls,
+                resultLabel
+        );
+
+        return section;
+    }
+
+    // ================= CHANGE MY PASSWORD =================
+
+    private void changeMyPassword() {
+
+        PasswordField currentPassword = new PasswordField();
+        PasswordField newPassword = new PasswordField();
+        PasswordField confirmPassword = new PasswordField();
+
+        currentPassword.setPromptText("Enter current password");
+        newPassword.setPromptText("At least 8 characters");
+        confirmPassword.setPromptText("Confirm new password");
+
+        VBox fields = new VBox(10);
+
+        fields.setPadding(new Insets(15));
+
+        fields.getChildren().addAll(
+                new Label("Current Password"),
+                currentPassword,
+                new Label("New Password"),
+                newPassword,
+                new Label("Confirm New Password"),
+                confirmPassword
+        );
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+
+        dialog.setTitle("Change My Password");
+        dialog.setHeaderText(
+                "Change password for " + staff.getUsername()
+        );
+
+        dialog.getDialogPane().setContent(fields);
+
+        ButtonType changeButton = new ButtonType(
+                "Change Password",
+                ButtonBar.ButtonData.OK_DONE
+        );
+
+        dialog.getDialogPane().getButtonTypes().addAll(
+                changeButton,
+                ButtonType.CANCEL
+        );
+
+        dialog.showAndWait().ifPresent(response -> {
+
+            if (response != changeButton) {
+                return;
+            }
+
+            String current = currentPassword.getText();
+            String newPass = newPassword.getText();
+            String confirmation = confirmPassword.getText();
+
+            if (current.isEmpty()
+                    || newPass.isEmpty()
+                    || confirmation.isEmpty()) {
+
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Missing Information",
+                        "Complete all password fields.",
+                        null
+                );
+
+                return;
+            }
+
+            if (newPass.length() < 8) {
+
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Weak Password",
+                        "New password must contain at least 8 characters.",
+                        null
+                );
+
+                return;
+            }
+
+            if (!newPass.equals(confirmation)) {
+
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Password Mismatch",
+                        "The new passwords do not match.",
+                        "Please confirm your new password correctly."
+                );
+
+                return;
+            }
+
+            if (current.equals(newPass)) {
+
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Choose a Different Password",
+                        "Your new password must be different.",
+                        null
+                );
+
+                return;
+            }
+
+            try {
+
+                boolean changed =
+                        staffDAO.changeOwnPassword(
+                                staff.getStaffID(),
+                                current,
+                                newPass
+                        );
+
+                if (changed) {
+
+                    showAlert(
+                            Alert.AlertType.INFORMATION,
+                            "Password Changed",
+                            "Your password was changed successfully.",
+                            "Use your new password the next time you log in."
+                    );
+
+                } else {
+
+                    showAlert(
+                            Alert.AlertType.ERROR,
+                            "Password Change Failed",
+                            "Your current password is incorrect "
+                            + "or your account is inactive.",
+                            "Check your current password and try again."
+                    );
+                }
+
+            } catch (Exception e) {
+
+                showAlert(
+                        Alert.AlertType.ERROR,
+                        "Password Error",
+                        "Unable to change your password.",
+                        e.getMessage()
+                );
+
+                e.printStackTrace();
+            }
+        });
+    }
+
+    // ================= ALERT HELPER =================
+
+    private void showAlert(
+            Alert.AlertType type,
+            String title,
+            String header,
+            String message) {
+
+        Alert alert = new Alert(type);
+
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+
+        if (message != null) {
+            alert.setContentText(message);
+        }
+
+        alert.showAndWait();
+    }
+
     // ================= LOG OUT =================
 
     private void logout() {
@@ -469,9 +781,11 @@ public class StaffDashboard {
                 new Alert(Alert.AlertType.CONFIRMATION);
 
         confirmation.setTitle("Log Out");
+
         confirmation.setHeaderText(
                 "Are you sure you want to log out?"
         );
+
         confirmation.setContentText(
                 "You will return to the staff login screen."
         );
@@ -495,9 +809,11 @@ public class StaffDashboard {
                 new Alert(Alert.AlertType.CONFIRMATION);
 
         confirmation.setTitle("Exit MediConnect");
+
         confirmation.setHeaderText(
                 "Are you sure you want to exit?"
         );
+
         confirmation.setContentText(
                 "The application will close."
         );

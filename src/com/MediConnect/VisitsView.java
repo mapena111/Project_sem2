@@ -59,8 +59,7 @@ public class VisitsView extends BorderPane {
         );
 
         searchField.setPromptText(
-                "Search by Visit ID, Patient ID, Doctor ID or notes"
-        );
+                "Search visit ID, patient name/ID, doctor name/ID or notes");
         searchField.setPrefWidth(350);
 
         Button searchButton = new Button("Search");
@@ -257,27 +256,36 @@ public class VisitsView extends BorderPane {
             notesArea.setPromptText("Enter consultation notes...");
             notesArea.setPrefRowCount(5);
             notesArea.setWrapText(true);
-
             appointmentCombo.valueProperty().addListener(
                     (observable, oldValue, newValue) -> {
 
                 if (newValue != null) {
+
                     PatientRecord selectedPatient =
                             findPatient(patients, newValue.getPatientID());
 
                     DoctorRecord selectedDoctor =
                             findDoctor(doctors, newValue.getDoctorID());
 
-                    if (selectedPatient != null) {
+                    if (selectedPatient != null && selectedDoctor != null) {
                         patientCombo.setValue(selectedPatient);
+                        doctorCombo.setValue(selectedDoctor);
+
+                        patientCombo.setDisable(true);
+                        doctorCombo.setDisable(true);
+                    } else {
+                        patientCombo.setValue(null);
+                        doctorCombo.setValue(null);
+
+                        patientCombo.setDisable(true);
+                        doctorCombo.setDisable(true);
                     }
 
-                    if (selectedDoctor != null) {
-                        doctorCombo.setValue(selectedDoctor);
-                    }
+                } else {
+                    patientCombo.setDisable(false);
+                    doctorCombo.setDisable(false);
                 }
             });
-
             if (existing != null) {
                 PatientRecord patient =
                         findPatient(patients, existing.getPatientID());
@@ -307,6 +315,12 @@ public class VisitsView extends BorderPane {
                         }
                     }
                 }
+            }
+            
+            if (existing != null) {
+                patientCombo.setDisable(true);
+                doctorCombo.setDisable(true);
+                appointmentCombo.setDisable(true);
             }
 
             GridPane form = new GridPane();

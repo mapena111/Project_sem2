@@ -56,7 +56,8 @@ public class AppointmentsView extends BorderPane {
                 "Book, view, update and manage patient appointments."
         );
 
-        searchField.setPromptText("Search appointment, patient, doctor ID or status");
+        searchField.setPromptText(
+                "Search appointment ID, patient name/ID, doctor name/ID or status");
         searchField.setPrefWidth(350);
 
         Button searchButton = new Button("Search");
